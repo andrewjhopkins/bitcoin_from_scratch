@@ -4,7 +4,8 @@
     { 
         public static void Main(string[] args)
         {
-            Console.WriteLine("New Project");
+            var wallet = new Wallet();
+            Console.WriteLine(wallet.GenerateBitcoinAddress());
         }
     }
 }
