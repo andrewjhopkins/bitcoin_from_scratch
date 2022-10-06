@@ -36,9 +36,9 @@ namespace bitcoin_from_scratch
 
             var appendCheckSum = prependNetworkByte + checkSum;
 
-            var bitcoinAddress = Utils.Base58Encode(Encoding.ASCII.GetBytes(appendCheckSum));
+            var bitcoinAddressBytes = Utils.Base58Encode(Encoding.ASCII.GetBytes(appendCheckSum));
 
-            return bitcoinAddress;
+            return Encoding.ASCII.GetString(bitcoinAddressBytes);
         }
 
         public void LoadWalletFromFile(string fileName)

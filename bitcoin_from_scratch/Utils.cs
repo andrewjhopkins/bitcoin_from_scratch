@@ -39,60 +39,50 @@ namespace bitcoin_from_scratch
             return utf8.GetBytes(Base58Alphabet);
         }
 
-        public static string Base58Encode(byte[] input)
+        public static byte[] Base58Encode(byte[] input)
         {
-            // Decode byte to bigInt
+            var base58Bytes = StringToBytes(Base58Alphabet);
+
             BigInteger intInput = 0;
             for (var i = 0; i < input.Length; i++)
             {
                 intInput = intInput * 256 + input[i];
             }
 
-            // Encode BigInteger to Base58 string
-            var result = "";
+            var result = new List<byte>();
+
             while (intInput > 0)
             {
                 var remainder = (int)(intInput % 58);
                 intInput /= 58;
-
-                result = Base58Alphabet[remainder] + result;
+                result.Add(base58Bytes[remainder]);
             }
 
-            // Append 1 for each leading 0 byte
             for (var i = 0; i < input.Length && input[i] == 0; i++)
             {
-                result = '1' + result;
+                result.Add((byte)'1');
             }
 
-            return result;
+            result.Reverse();
+
+            return result.ToArray();
         }
 
-        public static byte[] Base58Decode(byte[] input)
+        public static byte[] Base58Decode(string input)
         {
             BigInteger intInput = 0;
-            var zeroBytes = 0;
-
-            for (var i = 0; i < input.Length; i++)
-            {
-                if (input[i] == 0x00)
-                {
-                    zeroBytes += 1;
-                }
-            }
-
+            var zeroBytes = input.TakeWhile(x => x == '1').Count();
             var payload = input.Skip(zeroBytes).ToArray();
-            var base58Bytes = StringToBytes(Base58Alphabet);
 
             for (var i = 0; i < payload.Length; i++)
             {
-                var charIndex = Array.IndexOf(base58Bytes, payload[i]);
+                var charIndex = Base58Alphabet.IndexOf(payload[i]);
                 intInput *= 58;
-                intInput += new BigInteger(System.Convert.ToInt64(charIndex));
+                intInput += new BigInteger(Convert.ToInt64(charIndex));
             }
 
-            var decode = intInput.ToByteArray();
+            var decode = intInput.ToByteArray().Reverse();
             var zeroByteArray = new byte[zeroBytes];
-
             return zeroByteArray.Concat(decode).ToArray();
         }
     }
