@@ -33,15 +33,9 @@ namespace bitcoin_from_scratch
 
         private const string Base58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-        public static byte[] StringToBytes(string input)
-        { 
-            var utf8 = new UTF8Encoding();
-            return utf8.GetBytes(Base58Alphabet);
-        }
-
         public static byte[] Base58Encode(byte[] input)
         {
-            var base58Bytes = StringToBytes(Base58Alphabet);
+            var base58Bytes = Encoding.UTF8.GetBytes(Base58Alphabet);
 
             BigInteger intInput = 0;
             for (var i = 0; i < input.Length; i++)
@@ -81,7 +75,7 @@ namespace bitcoin_from_scratch
                 intInput += new BigInteger(Convert.ToInt64(charIndex));
             }
 
-            var decode = intInput.ToByteArray().Reverse();
+            var decode = intInput.ToByteArray().Reverse().SkipWhile(x => x == 0);
             var zeroByteArray = new byte[zeroBytes];
             return zeroByteArray.Concat(decode).ToArray();
         }
