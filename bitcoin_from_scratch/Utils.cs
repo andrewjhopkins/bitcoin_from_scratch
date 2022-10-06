@@ -20,12 +20,14 @@ namespace bitcoin_from_scratch
 
         public static string CheckSum(string input)
         {
-            var sha256 = new SHA256();
-
-            // SHA256 it twice
-            for (var i = 0; i < 2; i++)
+            using (SHA256 sha256Hash = new SHA256())
             {
-                input = Encoding.UTF8.GetString(sha256.ComputeHash(Encoding.ASCII.GetBytes(input)));
+                // SHA256 it twice
+                for (var i = 0; i < 2; i++)
+                { 
+                    var bytes = sha256Hash.ComputeHash(Encoding.ASCII.GetBytes(input));
+                    input = BitConverter.ToString(bytes).Replace("-", "").ToLower();
+                }
             }
 
             return input;

@@ -5,6 +5,14 @@ namespace bitcoin_from_scratch.Test
 {
     public class UtilsTest
     {
+        [TestCase("test", "7b3d979ca8330a94fa7e9e1b466d8b99e0bcdea1ec90596c0dcc8d7ef6b4300c")]
+        [TestCase("testing", "66efdc145d51e567081326b5da8756a77d9d5833c6e002b305af0276de694989")]
+        public void CanCheckSum(string input, string expected)
+        {
+            var checkSumString = Utils.CheckSum(input);
+            Assert.That(checkSumString, Is.EqualTo(expected));
+        }
+
         // Test cases from https://github.com/bitcoin/bitcoin/blob/master/src/test/base58_tests.cpp
         [TestCase("1112", new byte[]{0x00, 0x00, 0x00, 0x01})]
         [TestCase("2g", new byte[] { 0x61 })]
