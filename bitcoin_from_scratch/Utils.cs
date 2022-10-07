@@ -9,28 +9,24 @@ namespace bitcoin_from_scratch
     {
         public static byte[] HashPublicKey(byte[] input)
         {
-            var sha256 = new SHA256();
-            var sha256PublicKeyBytes = sha256.ComputeHash(input);
-
-            // check to see if this needs to be converted to a string before hashing it
-            var ripemd160 = new RIPEMD160();
-            var ripemd160FromSha256 = ripemd160.ComputeHash(sha256PublicKeyBytes);
-            return ripemd160FromSha256;
+            var inputShaHash = Sha256(input);
+            var inputRipeHash = Ripemd160(inputShaHash);
+            return inputRipeHash;
+        }
+        public static byte[] Sha256(byte[] data)
+        {
+            using (var sha256 = new SHA256())
+            { 
+                return sha256.ComputeHash(data);
+            }
         }
 
-        public static string CheckSum(string input)
+        public static byte[] Ripemd160(byte[] data)
         {
-            using (SHA256 sha256Hash = new SHA256())
+            using (var ripemd160 = new RIPEMD160())
             {
-                // SHA256 it twice
-                for (var i = 0; i < 2; i++)
-                { 
-                    var bytes = sha256Hash.ComputeHash(Encoding.ASCII.GetBytes(input));
-                    input = BitConverter.ToString(bytes).Replace("-", "").ToLower();
-                }
+                return ripemd160.ComputeHash(data);
             }
-
-            return input;
         }
 
         private const string Base58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";

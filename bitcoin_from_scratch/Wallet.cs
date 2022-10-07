@@ -5,7 +5,7 @@ namespace bitcoin_from_scratch
 {
     public class Wallet
     {
-        private static readonly string Version = "00";
+        private static readonly byte Version = 0;
         byte[] PrivateKey { get; set; }
         byte[] PublicKey { get; set; }
         string Address { get; set; }
@@ -23,27 +23,38 @@ namespace bitcoin_from_scratch
             }
 
             var publicKeyBytes = publicKey.X.Concat(publicKey.Y).ToArray();
-
-            PrivateKey = privateKey;
-            PublicKey = publicKeyBytes;
-
             var hashedPublicKey = Utils.HashPublicKey(publicKeyBytes);
 
-            var prependNetworkByte = Version + Encoding.UTF8.GetString(hashedPublicKey);
+            var hashedPublicKeyWithVersion = AppendBitcoinVersion(hashedPublicKey, Version);
+            byte[] address = AppendCheckSum(hashedPublicKeyWithVersion);
 
-            var hash = Utils.CheckSum(prependNetworkByte);
-            var checkSum = String.Concat(hash.Take(8));
+            var bitcoinAddress = Encoding.UTF8.GetString(Utils.Base58Encode(address));
 
-            var appendCheckSum = prependNetworkByte + checkSum;
-
-            var bitcoinAddressBytes = Utils.Base58Encode(Encoding.ASCII.GetBytes(appendCheckSum));
-
-            return Encoding.ASCII.GetString(bitcoinAddressBytes);
+            return bitcoinAddress;
         }
 
         public void LoadWalletFromFile(string fileName)
         {
             return;
+        }
+
+        private byte[] AppendBitcoinVersion(byte[] publicKeyHash, byte version)
+        {
+            var outputByteArray = new byte[publicKeyHash.Length + 1];
+            outputByteArray[0] = version;
+            Array.Copy(publicKeyHash, 0, outputByteArray, 1, publicKeyHash.Length);
+
+            return outputByteArray;
+        }
+
+        public static byte[] AppendCheckSum(byte[] hashedKey)
+        {
+            var twiceShaHashedKey = Utils.Sha256(Utils.Sha256(hashedKey));
+            var outputByteArray = new byte[hashedKey.Length + 4];
+            Array.Copy(hashedKey, outputByteArray, hashedKey.Length);
+
+            Array.Copy(twiceShaHashedKey, 0, outputByteArray, hashedKey.Length, 4);
+            return outputByteArray;
         }
     }
 }

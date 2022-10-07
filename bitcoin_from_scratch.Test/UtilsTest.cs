@@ -5,12 +5,18 @@ namespace bitcoin_from_scratch.Test
 {
     public class UtilsTest
     {
-        [TestCase("test", "7b3d979ca8330a94fa7e9e1b466d8b99e0bcdea1ec90596c0dcc8d7ef6b4300c")]
-        [TestCase("testing", "66efdc145d51e567081326b5da8756a77d9d5833c6e002b305af0276de694989")]
-        public void CanCheckSum(string input, string expected)
+        [TestCase("testing", "cf80cd8aed482d5d1527d7dc72fceff84e6326592848447d2dc0b0e87dfc9a90")]
+        public void CanSha256(string input, string expected)
         {
-            var checkSumString = Utils.CheckSum(input);
-            Assert.That(checkSumString, Is.EqualTo(expected));
+            var hashedString = BitConverter.ToString(Utils.Sha256(Encoding.ASCII.GetBytes(input))).Replace("-", "").ToLower();
+            Assert.That(hashedString, Is.EqualTo(expected));
+        }
+
+        [TestCase("testing", "b89ba156b40bed29a5965684b7d244c49a3a769b")]
+        public void CanRipemd160(string input, string expected)
+        {
+            var hashedString = BitConverter.ToString(Utils.Ripemd160(Encoding.ASCII.GetBytes(input))).Replace("-", "").ToLower();
+            Assert.That(hashedString, Is.EqualTo(expected));
         }
 
         // Test cases from https://github.com/bitcoin/bitcoin/blob/master/src/test/base58_tests.cpp
