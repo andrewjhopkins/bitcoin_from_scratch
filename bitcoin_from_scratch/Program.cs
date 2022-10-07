@@ -1,11 +1,15 @@
-﻿namespace bitcoin_from_scratch
+﻿using CliFx;
+
+namespace bitcoin_from_scratch
 {
     public class Program
     { 
-        public static void Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
-            var wallet = new Wallet();
-            Console.WriteLine(wallet.GenerateBitcoinAddress());
+            return await new CliApplicationBuilder()
+                .AddCommandsFromThisAssembly()
+                .Build()
+                .RunAsync();
         }
     }
 }

@@ -6,9 +6,6 @@ namespace bitcoin_from_scratch
     public class Wallet
     {
         private static readonly byte Version = 0;
-        byte[] PrivateKey { get; set; }
-        byte[] PublicKey { get; set; }
-        string Address { get; set; }
 
         public string GenerateBitcoinAddress()
         {
