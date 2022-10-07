@@ -16,4 +16,8 @@
     <PackageReference Include="coverlet.collector" Version="3.1.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\bitcoin_from_scratch\bitcoin_from_scratch.csproj" />
+  </ItemGroup>
+
 </Project>
