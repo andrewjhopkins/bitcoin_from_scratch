@@ -1,5 +1,6 @@
 ﻿using SshNet.Security.Cryptography;
 using System.Numerics;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using SHA256 = SshNet.Security.Cryptography.SHA256;
 
@@ -76,6 +77,22 @@ namespace bitcoin_from_scratch
             var decode = intInput.ToByteArray().Reverse().SkipWhile(x => x == 0);
             var zeroByteArray = new byte[zeroBytes];
             return zeroByteArray.Concat(decode).ToArray();
+        }
+        public static void SerializeObject(string path, object objectToSerialize)
+        {
+            using var stream = File.Open(path, FileMode.Create);
+            var binaryFormatter = new BinaryFormatter();
+            binaryFormatter.Serialize(stream, objectToSerialize);
+            stream.Close();
+        }
+
+        public static object DeserializeObject(string path)
+        {
+            using var stream = File.Open(path, FileMode.Open);
+            var binaryFormatter = new BinaryFormatter();
+            var objectToFetch = binaryFormatter.Deserialize(stream);
+            stream.Close();
+            return objectToFetch;
         }
     }
 }

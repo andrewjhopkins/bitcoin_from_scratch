@@ -3,9 +3,22 @@ using System.Text;
 
 namespace bitcoin_from_scratch
 {
+    [Serializable()]
     public class Wallet
     {
         private static readonly byte Version = 0;
+        private static readonly string FolderPath = "./wallets";
+
+        public byte[] PrivateKey { get; set; }
+        public byte[] PublicKey { get; set; }
+        public string BitcoinAddress { get; set; }
+
+        public Wallet()
+        {
+            PrivateKey = new byte[0];
+            PublicKey = new byte[0];
+            BitcoinAddress = "";
+        }
 
         public string GenerateBitcoinAddress()
         {
@@ -20,6 +33,10 @@ namespace bitcoin_from_scratch
             }
 
             var publicKeyBytes = publicKey.X.Concat(publicKey.Y).ToArray();
+
+            PrivateKey = privateKey;
+            PublicKey = publicKeyBytes;
+
             var hashedPublicKey = Utils.HashPublicKey(publicKeyBytes);
 
             var hashedPublicKeyWithVersion = AppendBitcoinVersion(hashedPublicKey, Version);
@@ -27,11 +44,39 @@ namespace bitcoin_from_scratch
 
             var bitcoinAddress = Encoding.UTF8.GetString(Utils.Base58Encode(address));
 
+            BitcoinAddress = bitcoinAddress;
+
             return bitcoinAddress;
         }
-
-        public void LoadWalletFromFile(string fileName)
+        
+        public void LoadWalletFromFile(string path)
         {
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                throw new Exception("File does not exist or can not be found.");
+            }
+
+            var walletToLoad = (Wallet)Utils.DeserializeObject(path);
+            
+            PrivateKey = walletToLoad.PrivateKey;
+            PublicKey = walletToLoad.PublicKey;
+            BitcoinAddress = walletToLoad.BitcoinAddress;
+
+            return;
+        }
+
+        public void SaveWalletToFile()
+        {
+            var fileName = $"{BitcoinAddress}.dat";
+
+            if (!Directory.Exists(FolderPath))
+            {
+                Directory.CreateDirectory(FolderPath);
+            }
+
+            var path = $"{FolderPath}/{fileName}";
+
+            Utils.SerializeObject(path, this);
             return;
         }
 
@@ -44,7 +89,7 @@ namespace bitcoin_from_scratch
             return outputByteArray;
         }
 
-        public static byte[] AppendCheckSum(byte[] hashedKey)
+        private static byte[] AppendCheckSum(byte[] hashedKey)
         {
             var twiceShaHashedKey = Utils.Sha256(Utils.Sha256(hashedKey));
             var outputByteArray = new byte[hashedKey.Length + 4];
