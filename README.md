@@ -9,8 +9,8 @@ In progress.
 - [x] Ability to upload wallet from file
 
 ### Blockchain
-- [ ] Proof of Work
-- [ ] Mine genesis block
+- [x] Proof of Work
+- [x] Mine genesis block
 - [ ] Persist blockchain
 
 ## Building the Project
