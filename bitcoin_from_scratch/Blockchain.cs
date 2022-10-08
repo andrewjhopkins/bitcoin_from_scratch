@@ -2,18 +2,30 @@
 using Newtonsoft.Json;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace bitcoin_from_scratch
 {
     public class Blockchain
     {
+        public const int coinbaseReward = 10;
         public string DbFilePath { get; set; }
         public string TipHashString { get; set; }
 
         public Blockchain(string dbFilePath)
         {
             DbFilePath = dbFilePath;
-            var genesisBlock = CreateNewGenesisBlock();
+        }
+
+        public Blockchain(string dbFilePath, string tipHashString) : this(dbFilePath)
+        {
+            TipHashString = tipHashString;
+        }
+
+        public void NewBlockchain(string toBitcoinAddress)
+        { 
+            var coinbaseTransaction = CreateCoinbaseTransaction("", toBitcoinAddress);
+            var genesisBlock = CreateNewGenesisBlock(coinbaseTransaction);
 
             if (genesisBlock.Hash != null)
             {
@@ -34,15 +46,39 @@ namespace bitcoin_from_scratch
             }
         }
 
-        public Blockchain(string dbFilePath, string tipHashString)
+        public TransactionOutput[] FindUnspentTransactionOutputs(string address)
         {
-            DbFilePath = dbFilePath;
-            TipHashString = tipHashString;
+            var unspentTransactionOutputs = new List<TransactionOutput>();
+            var unspentTransactions = FindUnspentTransactions(address);
+
+            return unspentTransactionOutputs.ToArray();
         }
 
-        private Block CreateNewGenesisBlock()
+        public Transaction[] FindUnspentTransactions(string address)
         {
-            return new Block("Genesis Block", new byte[0]);
+            var unspentTransactions = new List<Transaction>();
+            var spentTransactions = new Dictionary<string, int[]>();
+
+            return unspentTransactions.ToArray();
+        }
+
+        private Block CreateNewGenesisBlock(Transaction transaction)
+        {
+            return new Block(new[] { transaction }, new byte[0]);
+        }
+
+        private Transaction CreateCoinbaseTransaction(string data, string to)
+        { 
+            if (string.IsNullOrEmpty(data))
+            {
+                data = $"Reward to {to}";
+            }
+
+            var transactionInput = new TransactionInput(new byte[0], -1, data);
+            var transactionOutput = new TransactionOutput(coinbaseReward, to);
+            var coinbaseTransaction = new Transaction(new byte[0], new[] { transactionInput }, new[] { transactionOutput });
+
+            return coinbaseTransaction;
         }
     }
 }
