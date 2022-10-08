@@ -11,7 +11,10 @@ In progress.
 ### Blockchain
 - [x] Proof of Work
 - [x] Mine genesis block
-- [ ] Persist blockchain
+- [x] Persist blockchain
+- [ ] Add Transactions
+- [ ] Genesis block mining reward
+- [ ] Ability to get balance by address
 
 ## Building the Project
 - Build the source code. From the directory containing the .csproj
