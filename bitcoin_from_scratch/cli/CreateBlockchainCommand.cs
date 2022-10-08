@@ -8,7 +8,7 @@ namespace bitcoin_from_scratch.cli
     [Command("create-blockchain")]
     public class CreateBlockchainCommand : ICommand
     {
-        public readonly string DbFileName = "./blockchainDb";
+        private readonly string DbFileName = "./blockchainDb";
 
         public ValueTask ExecuteAsync(IConsole console)
         {
@@ -21,10 +21,10 @@ namespace bitcoin_from_scratch.cli
                 if (chainTipValue == null)
                 {
                     console.Output.WriteLine("Blockchain does not exist");
-            console.Output.WriteLine($"Mining genesis block...");
+                    console.Output.WriteLine($"Mining genesis block...");
                     blockchain = new Blockchain(DbFileName);
-            console.Output.WriteLine("Blockchain created!");
-            return default;
+                    console.Output.WriteLine("Blockchain created!");
+                    return default;
                 }
 
                 console.Output.WriteLine("Blockchain already exists");
