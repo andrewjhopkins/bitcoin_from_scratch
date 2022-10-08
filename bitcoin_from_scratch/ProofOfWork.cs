@@ -1,4 +1,7 @@
-﻿namespace bitcoin_from_scratch
+﻿using System.Numerics;
+using System.Text;
+
+namespace bitcoin_from_scratch
 {
     public class ProofOfWork
     {

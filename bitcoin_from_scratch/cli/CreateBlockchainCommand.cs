@@ -21,17 +21,17 @@ namespace bitcoin_from_scratch.cli
                 if (chainTipValue == null)
                 {
                     console.Output.WriteLine("Blockchain does not exist");
-                    console.Output.WriteLine($"Mining genesis block...");
+            console.Output.WriteLine($"Mining genesis block...");
                     blockchain = new Blockchain(DbFileName);
-                    console.Output.WriteLine("Blockchain created!");
-                    return default;
+            console.Output.WriteLine("Blockchain created!");
+            return default;
                 }
 
                 console.Output.WriteLine("Blockchain already exists");
                 blockchain = new Blockchain(DbFileName, chainTipValue);
                 console.Output.WriteLine($"TipHashString: {blockchain.TipHashString}");
                 return default;
-            }
         }
     }
+}
 }
