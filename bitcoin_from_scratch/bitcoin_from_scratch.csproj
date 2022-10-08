@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="CliFx" Version="2.3.0" />
+    <PackageReference Include="LevelDB.Standard" Version="2.1.6.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="SshNet.Security.Cryptography" Version="1.3.0" />
   </ItemGroup>
 

@@ -94,5 +94,10 @@ namespace bitcoin_from_scratch
             stream.Close();
             return objectToFetch;
         }
+
+        public static string BytesToString(byte[] bytes)
+        {
+            return BitConverter.ToString(bytes).Replace("-", "").ToLower();
+        }
     }
 }
