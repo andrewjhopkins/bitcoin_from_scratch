@@ -17,7 +17,10 @@ namespace bitcoin_from_scratch
             Timestamp = DateTime.UtcNow;
             Transactions = transactions;
             PreviousBlockHash = previousBlockHash;
+        }
 
+        public void MineBlock()
+        { 
             ProofOfWork = new ProofOfWork();
             ProofOfWork.Run(this);
         }

@@ -3,11 +3,17 @@
     public class TransactionOutput
     {
         public int Value { get; set; }
-        public string ScriptPubKey { get; set; }
-        public TransactionOutput(int value, string scriptPubKey)
+        public byte[] PublicKeyHash { get; set; }
+
+        public TransactionOutput(int value, byte[] publicKeyHash)
         {
             Value = value;
-            ScriptPubKey = scriptPubKey;
+            PublicKeyHash = publicKeyHash;
+        }
+
+        public bool IsLockedWithKey(byte[] publicKeyHash)
+        {
+            return PublicKeyHash.SequenceEqual(publicKeyHash);
         }
     }
 }

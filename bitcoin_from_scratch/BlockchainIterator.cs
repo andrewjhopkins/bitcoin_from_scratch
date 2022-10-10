@@ -8,14 +8,16 @@ namespace bitcoin_from_scratch
         public string DbFile { get; set; }
         public string CurrentHash { get; set; }
 
-        public BlockchainIterator(string dbFile, string currentHash)
+        public BlockchainIterator(Blockchain blockchain)
         {
-            DbFile = dbFile;
-            CurrentHash = currentHash;
+            DbFile = blockchain.DbFilePath;
+            CurrentHash = blockchain.TipHashString;
         }
 
-        public string Next()
+        public Block Next()
         {
+            Block currentBlock;
+
             using (var db = new DB(new Options(), DbFile))
             {
                 if (db.Get(CurrentHash) == null)
@@ -23,7 +25,7 @@ namespace bitcoin_from_scratch
                     throw new Exception("Current hash not found in database");
                 }
 
-                var currentBlock = JsonConvert.DeserializeObject<Block>(db.Get(CurrentHash));
+                currentBlock = JsonConvert.DeserializeObject<Block>(db.Get(CurrentHash));
 
                 if (currentBlock == null)
                 {
@@ -35,7 +37,7 @@ namespace bitcoin_from_scratch
                 db.Close();
             }
 
-            return CurrentHash;
+            return currentBlock;
         }
     }
 }

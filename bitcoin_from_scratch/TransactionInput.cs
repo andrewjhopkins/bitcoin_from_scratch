@@ -4,13 +4,21 @@
     {
         public byte[] ReferencedTransactionOutputId { get; set; }
         public int ReferencedTransactionOutputIndex { get; set; }
-        public string ScriptSig { get; set; }
+        public byte[] Signature { get; set; }
+        public byte[] PublicKey { get; set; }
 
-        public TransactionInput(byte[] referencedTransactionOutputId, int referencedTransactionOutputIndex, string scriptSig)
+        public TransactionInput(byte[] referencedTransactionOutputId, int referencedTransactionOutputIndex, byte[] signature, byte[] publicKey)
         {
             ReferencedTransactionOutputId = referencedTransactionOutputId;
             ReferencedTransactionOutputIndex = referencedTransactionOutputIndex;
-            ScriptSig = scriptSig;
+            Signature = signature;
+            PublicKey = publicKey;
+        }
+
+        public bool UsesKey(byte[] publicKeyHash)
+        {
+            var lockingHash = Utils.HashPublicKey(PublicKey);
+            return lockingHash == publicKeyHash;
         }
     }
 }

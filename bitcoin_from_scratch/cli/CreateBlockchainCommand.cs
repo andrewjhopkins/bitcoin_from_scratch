@@ -26,9 +26,14 @@ namespace bitcoin_from_scratch.cli
                 if (chainTipHash == null)
                 {
                     console.Output.WriteLine("Blockchain does not exist");
+                    var walletPath = $"./wallets/{Address}.dat";
+
+                    var wallet = new Wallet();
+                    wallet.LoadWalletFromFile(walletPath);
+
                     console.Output.WriteLine($"Mining genesis block...");
                     blockchain = new Blockchain(DbFileName);
-                    blockchain.NewBlockchain(Address);
+                    blockchain.NewBlockchain(wallet);
                     console.Output.WriteLine("Blockchain created!");
                     return default;
                 }
