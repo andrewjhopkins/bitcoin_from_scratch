@@ -20,6 +20,7 @@ namespace bitcoin_from_scratch.cli
         public int Amount { get; init; }
 
 
+        //TODO: Get public key from bitcoin address by decoding base58
         public ValueTask ExecuteAsync(IConsole console)
         {
             using (var db = new DB(new Options(), DbFileName))
@@ -32,10 +33,18 @@ namespace bitcoin_from_scratch.cli
                 }
                 else
                 {
-                    var blockChain = new Blockchain(DbFileName, chainTipHash);
+                    var blockchain = new Blockchain(DbFileName, chainTipHash);
 
-                    //var transaction = new Transaction();
-                    //Blockchain.Mineblock();
+                    var toWallet = new Wallet();
+                    toWallet.LoadWalletFromFile($"./wallets/{RecieverAddress}.dat");
+
+                    var fromWallet = new Wallet();
+                    fromWallet.LoadWalletFromFile($"./wallets/{SenderAddress}.dat");
+
+                    var transaction = new Transaction(blockchain, toWallet, fromWallet, Amount);
+                    blockchain.CreateBlock(transaction);
+
+                    console.Output.WriteLine($"{Amount} bitcoin sent from address: {SenderAddress} to address: {RecieverAddress}");
                 }
             }
             return default;

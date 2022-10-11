@@ -97,7 +97,12 @@ namespace bitcoin_from_scratch
 
         public static string BytesToString(byte[] bytes)
         {
-            return BitConverter.ToString(bytes).Replace("-", "").ToLower();
+            return Convert.ToBase64String(bytes);
+        }
+
+        public static byte[] StringToBytes(string inputString)
+        {
+            return Convert.FromBase64String(inputString);
         }
     }
 }

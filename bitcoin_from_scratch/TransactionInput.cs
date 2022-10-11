@@ -18,7 +18,7 @@
         public bool UsesKey(byte[] publicKeyHash)
         {
             var lockingHash = Utils.HashPublicKey(PublicKey);
-            return lockingHash == publicKeyHash;
+            return lockingHash.SequenceEqual(publicKeyHash);
         }
     }
 }

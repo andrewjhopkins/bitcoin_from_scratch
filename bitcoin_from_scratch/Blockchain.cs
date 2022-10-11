@@ -45,6 +45,66 @@ namespace bitcoin_from_scratch
             }
         }
 
+        public Block CreateBlock(Transaction transaction)
+        {
+            var previousHash = Utils.StringToBytes(TipHashString);
+            var block = new Block(new Transaction[] { transaction }, previousHash);
+
+            block.MineBlock();
+
+            if (block.Hash != null)
+            {
+                using (var db = new DB(new Options(), DbFilePath))
+                {
+                    var hashString = Utils.BytesToString(block.Hash);
+                    db.Put(hashString, JsonConvert.SerializeObject(block));
+                    db.Put("1", hashString);
+
+                    TipHashString = hashString;
+                    db.Close();
+                }
+            }
+            else
+            {
+                throw new Exception("Block hash is null");
+            }
+
+            return block;
+        }
+
+        public Tuple<int, Dictionary<byte[], int[]>> FindSpendableOutputs(Wallet address, int amount)
+        {
+            var publicKeyHash = Utils.HashPublicKey(address.PublicKey);
+
+            var unspentOutputs = new Dictionary<byte[], int[]>();
+            var unspentTransactions = FindUnspentTransactions(address);
+            var accumulatedValue = 0;
+
+            foreach (var transaction in unspentTransactions)
+            {
+                for (var i = 0; i < transaction.Outputs.Length; i++)
+                {
+                    var transactionOutput = transaction.Outputs[i];
+                    if (transactionOutput.IsLockedWithKey(publicKeyHash) && accumulatedValue < amount)
+                    {
+                        accumulatedValue += transactionOutput.Value;
+
+                        if (!unspentOutputs.ContainsKey(transaction.Id))
+                        {
+                            unspentOutputs.Add(transaction.Id, new int[] { i });
+                        }
+
+                        if (accumulatedValue >= amount)
+                        { 
+                            return Tuple.Create(accumulatedValue, unspentOutputs);
+                        }
+                    }
+                }
+            }
+
+            return Tuple.Create(accumulatedValue, unspentOutputs);
+        }
+
         public TransactionOutput[] FindUnspentTransactionOutputs(Wallet wallet)
         {
             var unspentTransactionOutputs = new List<TransactionOutput>();
@@ -69,7 +129,7 @@ namespace bitcoin_from_scratch
         public Transaction[] FindUnspentTransactions(Wallet wallet)
         {
             var unspentTransactions = new List<Transaction>();
-            var spentTransactions = new Dictionary<string, List<int>>();
+            var spentTransactions = new Dictionary<byte[], List<int>>();
 
             var blockchainIterator = new BlockchainIterator(this);
 
@@ -81,11 +141,9 @@ namespace bitcoin_from_scratch
 
                 foreach (var transaction in block.Transactions)
                 {
-                    var transactionId = Encoding.UTF8.GetString(transaction.Id);
-
                     for (var i = 0; i < transaction.Outputs.Length; i++)
                     {
-                        if (IsTransactionOutputSpent(transactionId, spentTransactions, i))
+                        if (IsTransactionOutputSpent(transaction.Id, spentTransactions, i))
                         {
                             continue;
                         }
@@ -103,7 +161,7 @@ namespace bitcoin_from_scratch
                                 if (transactionInput.UsesKey(publicKeyHash))
                                 {
                                     // If a transaction output id appears here, it is spent
-                                    var referencedTransactionOutputId = Encoding.UTF8.GetString(transactionInput.ReferencedTransactionOutputId);
+                                    var referencedTransactionOutputId = transactionInput.ReferencedTransactionOutputId;
 
                                     if (!spentTransactions.ContainsKey(referencedTransactionOutputId))
                                     {
@@ -120,7 +178,7 @@ namespace bitcoin_from_scratch
             return unspentTransactions.ToArray();
         }
 
-        private bool IsTransactionOutputSpent(string transactionId, Dictionary<string, List<int>> spentTransactions, int outputIndexInTransaction)
+        private bool IsTransactionOutputSpent(byte[] transactionId, Dictionary<byte[], List<int>> spentTransactions, int outputIndexInTransaction)
         {
             if (spentTransactions.ContainsKey(transactionId))
             {
