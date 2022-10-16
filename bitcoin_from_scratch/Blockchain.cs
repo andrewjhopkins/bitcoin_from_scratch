@@ -160,7 +160,7 @@ namespace bitcoin_from_scratch
                             utxo.Add(transaction.Id, new List<TransactionOutput>());
                         }
 
-                        utxo[transaction.Id].Append(transaction.Outputs[i]);
+                        utxo[transaction.Id].Add(transaction.Outputs[i]);
                     }
 
                     if (!transaction.IsCoinbase())
@@ -170,7 +170,7 @@ namespace bitcoin_from_scratch
                             var stringId = Utils.BytesToString(transactionInputs.ReferencedTransactionOutputId);
                             if (!spentTransactions.ContainsKey(stringId))
                             {
-                                spentTransactions[stringId].Append(transactionInputs.ReferencedTransactionOutputIndex);
+                                spentTransactions[stringId].Add(transactionInputs.ReferencedTransactionOutputIndex);
                             }
                         }
                     }

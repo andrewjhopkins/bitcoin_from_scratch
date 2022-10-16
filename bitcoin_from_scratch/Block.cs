@@ -47,7 +47,8 @@ namespace bitcoin_from_scratch
                 byteArrays.Add(transaction.Id);
             }
 
-            return Utils.Sha256(byteArrays.SelectMany(x => x).ToArray());
+            var merkleTree = new MerkleTree(byteArrays.ToArray());
+            return merkleTree.Root.Data;
         }
     }
 }
