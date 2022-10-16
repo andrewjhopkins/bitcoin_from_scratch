@@ -20,7 +20,6 @@ namespace bitcoin_from_scratch.cli
         [CommandOption("reward", 'r', Description = "Include mining reward")]
         public bool IncludeMiningReward { get; init; } = false;
 
-        //TODO: Get public key from bitcoin address by decoding base58
         public ValueTask ExecuteAsync(IConsole console)
         {
             using (var db = new DB(new Options(), Constants.BlockChainDbFile))
@@ -36,15 +35,14 @@ namespace bitcoin_from_scratch.cli
                     var blockchain = new Blockchain(Constants.BlockChainDbFile, Constants.UtxoSetDbFile, chainTipHash);
                     var utxoSet = new UtxoSet(blockchain);
 
-                    var toWallet = new Wallet();
-                    toWallet.LoadWalletFromFile($"./wallets/{RecieverAddress}.dat");
-
                     var fromWallet = new Wallet();
                     fromWallet.LoadWalletFromFile($"./wallets/{SenderAddress}.dat");
 
                     var publicKeyHash = Utils.HashPublicKey(fromWallet.PublicKey);
 
-                    var transaction = new Transaction(blockchain, toWallet, fromWallet, Amount);
+                    var toWalletHashedPublicKey = Utils.GetPublicKeyHashFromBitcoinAddress(RecieverAddress);
+
+                    var transaction = new Transaction(blockchain, toWalletHashedPublicKey, fromWallet, Amount);
                     var transactions = new List<Transaction>() { transaction };
 
                     if (IncludeMiningReward)

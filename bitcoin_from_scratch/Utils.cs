@@ -95,6 +95,12 @@ namespace bitcoin_from_scratch
             return objectToFetch;
         }
 
+        public static byte[] GetPublicKeyHashFromBitcoinAddress(string bitcoinAddress)
+        {
+            var decodedAddress = Base58Decode(bitcoinAddress);
+            return decodedAddress.Skip(1).Take(decodedAddress.Length - 5).ToArray();
+        }
+
         public static string BytesToString(byte[] bytes)
         {
             return Convert.ToBase64String(bytes);

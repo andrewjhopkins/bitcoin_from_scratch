@@ -1,7 +1,6 @@
 ﻿using EllipticCurve;
 using Newtonsoft.Json;
 using System.Numerics;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace bitcoin_from_scratch
@@ -20,7 +19,7 @@ namespace bitcoin_from_scratch
             Outputs = outputs;
         }
 
-        public Transaction (Blockchain blockchain, Wallet to, Wallet from, int amount)
+        public Transaction (Blockchain blockchain, byte[] toPublicKeyHash, Wallet from, int amount)
         {
             var inputs = new List<TransactionInput>();
             var outputs = new List<TransactionOutput>();
@@ -43,7 +42,7 @@ namespace bitcoin_from_scratch
                 }
             }
 
-            outputs.Add(new TransactionOutput(amount, Utils.HashPublicKey(to.PublicKey)));
+            outputs.Add(new TransactionOutput(amount, toPublicKeyHash));
 
             if (accumulatedFunds > amount)
             {
