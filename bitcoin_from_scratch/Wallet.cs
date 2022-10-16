@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using EllipticCurve;
+using System.Numerics;
 using System.Text;
 
 namespace bitcoin_from_scratch
@@ -22,19 +23,12 @@ namespace bitcoin_from_scratch
 
         public string GenerateBitcoinAddress()
         {
-            var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-            var ecParameters = key.ExportParameters(true);
-            var privateKey = ecParameters.D;
-            var publicKey = ecParameters.Q;
+            var privateKey = new PrivateKey(curve: "secp256k1");
+            var publicKey = privateKey.publicKey();
 
-            if (privateKey == null || publicKey.X == null || publicKey.Y == null)
-            {
-                throw new Exception();
-            }
+            var publicKeyBytes = publicKey.point.x.ToByteArray().Concat(publicKey.point.y.ToByteArray()).ToArray();
 
-            var publicKeyBytes = publicKey.X.Concat(publicKey.Y).ToArray();
-
-            PrivateKey = privateKey;
+            PrivateKey = privateKey.toDer();
             PublicKey = publicKeyBytes;
 
             var hashedPublicKey = Utils.HashPublicKey(publicKeyBytes);
@@ -56,7 +50,7 @@ namespace bitcoin_from_scratch
                 throw new Exception("File does not exist or can not be found.");
             }
 
-            var walletToLoad = (Wallet)Utils.DeserializeObject(path);
+            var walletToLoad = (Wallet)Utils.DeserializeObjectFromFile(path);
             
             PrivateKey = walletToLoad.PrivateKey;
             PublicKey = walletToLoad.PublicKey;
@@ -76,7 +70,7 @@ namespace bitcoin_from_scratch
 
             var path = $"{FolderPath}/{fileName}";
 
-            Utils.SerializeObject(path, this);
+            Utils.SerializeObjectToFile(path, this);
             return;
         }
 

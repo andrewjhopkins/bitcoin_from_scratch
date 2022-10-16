@@ -42,7 +42,8 @@ namespace bitcoin_from_scratch.cli
                     fromWallet.LoadWalletFromFile($"./wallets/{SenderAddress}.dat");
 
                     var transaction = new Transaction(blockchain, toWallet, fromWallet, Amount);
-                    blockchain.CreateBlock(transaction);
+                    var transactions = new Transaction[] { transaction };
+                    blockchain.CreateBlock(transactions);
 
                     console.Output.WriteLine($"{Amount} bitcoin sent from address: {SenderAddress} to address: {RecieverAddress}");
                 }

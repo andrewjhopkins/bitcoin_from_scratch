@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using EllipticCurve;
+using Newtonsoft.Json;
+using System.Numerics;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace bitcoin_from_scratch
 {
@@ -48,10 +52,118 @@ namespace bitcoin_from_scratch
 
             Inputs = inputs.ToArray();
             Outputs = outputs.ToArray();
-            Id = new byte[0];
+            Id = Hash();
+
+            blockchain.SignTransaction(this, from.PrivateKey);
+        }
+
+        public void Sign(byte[] privateKey, Dictionary<string, Transaction> previousTransactions)
+        {
+            if (IsCoinbase())
+            {
+                return;
+            }
+
+            foreach (var inputs in Inputs)
+            {
+                if (previousTransactions[Convert.ToBase64String(inputs.ReferencedTransactionOutputId)].Id == null)
+                {
+                    throw new Exception("Previous transaction is not correct");
+                }
+            }
+
+            var transactionCopy = GetTrimmedCopy();
+
+            for (var i = 0; i < transactionCopy.Inputs.Length; i++)
+            {
+                var transactionInput = transactionCopy.Inputs[i];
+
+                var previousTransaction = previousTransactions[Convert.ToBase64String(transactionInput.ReferencedTransactionOutputId)];
+
+                // double check signature is set to empty;
+                transactionCopy.Inputs[i].Signature = new byte[0];
+                transactionCopy.Inputs[i].PublicKey = previousTransaction.Outputs[transactionInput.ReferencedTransactionOutputIndex].PublicKeyHash;
+                transactionCopy.Id = transactionCopy.Hash();
+
+                // reset publicKey so it doesn't impact futher iterations
+                transactionCopy.Inputs[i].PublicKey = new byte[0];
+
+                var signature = Ecdsa.sign(Convert.ToBase64String(transactionCopy.Id), PrivateKey.fromDer(privateKey));
+
+                Inputs[i].Signature = signature.toDer();
+            }
+        }
+
+        public bool Verify(Dictionary<string, Transaction> previousTransactions)
+        {
+            if (IsCoinbase())
+            {
+                return true;
+            }
+
+            foreach (var inputs in Inputs)
+            {
+                if (previousTransactions[Convert.ToBase64String(inputs.ReferencedTransactionOutputId)].Id == null)
+                {
+                    throw new Exception("Previous transaction is not correct");
+                }
+            }
+
+            var transactionCopy = GetTrimmedCopy();
+
+            for (var i = 0; i < Inputs.Length; i++)
+            {
+                var transactionInput = Inputs[i];
+
+                var previousTransaction = previousTransactions[Convert.ToBase64String(transactionInput.ReferencedTransactionOutputId)];
+                transactionCopy.Inputs[i].Signature = new byte[0];
+                transactionCopy.Inputs[i].PublicKey = previousTransaction.Outputs[transactionInput.ReferencedTransactionOutputIndex].PublicKeyHash;
+                transactionCopy.Id = transactionCopy.Hash();
+                transactionCopy.Inputs[i].PublicKey = new byte[0];
+
+                var curveByName = Curves.getCurveByName("secp256k1");
+                var keyLength = curveByName.length();
+
+                // point bytes sometimes 33 bytes with appeneded 0 at the end
+                if (transactionInput.PublicKey.ElementAt(keyLength) == 0)
+                {
+                    keyLength += 1;
+                }
+
+                var xBytes = transactionInput.PublicKey.Take(keyLength).ToArray();
+                var yBytes = transactionInput.PublicKey.Skip(keyLength).ToArray();
+
+                var x = new BigInteger(xBytes);
+                var y = new BigInteger(yBytes);
+
+                var rawPublicKey = new PublicKey(new Point(x, y), Curves.secp256k1);
+
+                if (transactionInput.Signature.Length == 0 || 
+                    !Ecdsa.verify(Convert.ToBase64String(transactionCopy.Id), Signature.fromDer(transactionInput.Signature), rawPublicKey))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public bool IsCoinbase() =>
             (Inputs.Length == 1 && Inputs[0].ReferencedTransactionOutputId.Length == 0 && Inputs[0].ReferencedTransactionOutputIndex == -1);
+
+        private byte[] Hash()
+        {
+            var jsonString = JsonConvert.SerializeObject(this);
+            var bytes = Encoding.UTF8.GetBytes(jsonString);
+            return Utils.Sha256(bytes);
+        }
+
+        private Transaction GetTrimmedCopy()
+        {
+            var inputs = Inputs.Select(x => new TransactionInput(x.ReferencedTransactionOutputId, x.ReferencedTransactionOutputIndex, new byte[0], new byte[0])).ToArray();
+            var outputs = Outputs.Select(x => new TransactionOutput(x.Value, x.PublicKeyHash)).ToArray();
+
+            return new Transaction(Id, inputs, outputs);
+        }
     }
 }

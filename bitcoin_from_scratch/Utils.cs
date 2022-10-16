@@ -78,7 +78,7 @@ namespace bitcoin_from_scratch
             var zeroByteArray = new byte[zeroBytes];
             return zeroByteArray.Concat(decode).ToArray();
         }
-        public static void SerializeObject(string path, object objectToSerialize)
+        public static void SerializeObjectToFile(string path, object objectToSerialize)
         {
             using var stream = File.Open(path, FileMode.Create);
             var binaryFormatter = new BinaryFormatter();
@@ -86,7 +86,7 @@ namespace bitcoin_from_scratch
             stream.Close();
         }
 
-        public static object DeserializeObject(string path)
+        public static object DeserializeObjectFromFile(string path)
         {
             using var stream = File.Open(path, FileMode.Open);
             var binaryFormatter = new BinaryFormatter();

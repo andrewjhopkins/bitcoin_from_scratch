@@ -1,4 +1,5 @@
-﻿using LevelDB;
+﻿using EllipticCurve.Utils;
+using LevelDB;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -45,10 +46,18 @@ namespace bitcoin_from_scratch
             }
         }
 
-        public Block CreateBlock(Transaction transaction)
+        public Block CreateBlock(Transaction[] transactions)
         {
             var previousHash = Utils.StringToBytes(TipHashString);
-            var block = new Block(new Transaction[] { transaction }, previousHash);
+            foreach (var transaction in transactions)
+            {
+                if (!VerifyTransaction(transaction))
+                {
+                    throw new Exception("Invalid Transaction");
+                }
+            }
+
+            var block = new Block(transactions, previousHash);
 
             block.MineBlock();
 
@@ -176,6 +185,55 @@ namespace bitcoin_from_scratch
             }
 
             return unspentTransactions.ToArray();
+        }
+
+        public Transaction FindTransaction(byte[] Id)
+        {
+            var blockchainIterator = new BlockchainIterator(this);
+
+            while (blockchainIterator.CurrentHash.Length > 0)
+            { 
+                var currentBlock = blockchainIterator.Next();
+                foreach (var transaction in currentBlock.Transactions)
+                {
+                    if (transaction.Id.SequenceEqual(Id))
+                    {
+                        return transaction;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public void SignTransaction(Transaction transaction, byte[] privateKey)
+        {
+            var previousTransactions = new Dictionary<string, Transaction>();
+
+            foreach (var inputs in transaction.Inputs)
+            {
+                var previousTransaction = FindTransaction(inputs.ReferencedTransactionOutputId);
+                if (previousTransaction == null)
+                {
+                    throw new Exception("Previous transaction not found");
+                }
+                previousTransactions[Convert.ToBase64String(previousTransaction.Id)] = previousTransaction;
+            }
+
+            transaction.Sign(privateKey, previousTransactions);
+        }
+
+        public bool VerifyTransaction(Transaction transaction)
+        {
+            var previousTransactions = new Dictionary<string, Transaction>();
+
+            foreach (var input in transaction.Inputs)
+            {
+                var previousTransaction = FindTransaction(input.ReferencedTransactionOutputId);
+                previousTransactions[Convert.ToBase64String(previousTransaction.Id)] = previousTransaction;
+            }
+
+            return transaction.Verify(previousTransactions);
         }
 
         private bool IsTransactionOutputSpent(byte[] transactionId, Dictionary<byte[], List<int>> spentTransactions, int outputIndexInTransaction)
