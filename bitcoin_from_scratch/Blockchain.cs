@@ -180,7 +180,6 @@ namespace bitcoin_from_scratch
             return utxo;
         }
 
-        //TODO: Find out why so many transactions are considered unspent
         public Transaction[] FindUnspentTransactions(Wallet wallet)
         {
             var unspentTransactions = new List<Transaction>();
