@@ -10,7 +10,7 @@ namespace bitcoin_from_scratch
 
         public BlockchainIterator(Blockchain blockchain)
         {
-            DbFile = blockchain.DbFilePath;
+            DbFile = blockchain.BlockchainDbFilePath;
             CurrentHash = blockchain.TipHashString;
         }
 

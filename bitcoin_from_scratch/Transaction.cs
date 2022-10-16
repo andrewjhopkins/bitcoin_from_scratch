@@ -66,7 +66,7 @@ namespace bitcoin_from_scratch
 
             foreach (var inputs in Inputs)
             {
-                if (previousTransactions[Convert.ToBase64String(inputs.ReferencedTransactionOutputId)].Id == null)
+                if (previousTransactions[Utils.BytesToString(inputs.ReferencedTransactionOutputId)].Id == null)
                 {
                     throw new Exception("Previous transaction is not correct");
                 }
@@ -78,7 +78,7 @@ namespace bitcoin_from_scratch
             {
                 var transactionInput = transactionCopy.Inputs[i];
 
-                var previousTransaction = previousTransactions[Convert.ToBase64String(transactionInput.ReferencedTransactionOutputId)];
+                var previousTransaction = previousTransactions[Utils.BytesToString(transactionInput.ReferencedTransactionOutputId)];
 
                 // double check signature is set to empty;
                 transactionCopy.Inputs[i].Signature = new byte[0];
@@ -88,7 +88,7 @@ namespace bitcoin_from_scratch
                 // reset publicKey so it doesn't impact futher iterations
                 transactionCopy.Inputs[i].PublicKey = new byte[0];
 
-                var signature = Ecdsa.sign(Convert.ToBase64String(transactionCopy.Id), PrivateKey.fromDer(privateKey));
+                var signature = Ecdsa.sign(Utils.BytesToString(transactionCopy.Id), PrivateKey.fromDer(privateKey));
 
                 Inputs[i].Signature = signature.toDer();
             }
@@ -103,7 +103,7 @@ namespace bitcoin_from_scratch
 
             foreach (var inputs in Inputs)
             {
-                if (previousTransactions[Convert.ToBase64String(inputs.ReferencedTransactionOutputId)].Id == null)
+                if (previousTransactions[Utils.BytesToString(inputs.ReferencedTransactionOutputId)].Id == null)
                 {
                     throw new Exception("Previous transaction is not correct");
                 }
@@ -115,7 +115,7 @@ namespace bitcoin_from_scratch
             {
                 var transactionInput = Inputs[i];
 
-                var previousTransaction = previousTransactions[Convert.ToBase64String(transactionInput.ReferencedTransactionOutputId)];
+                var previousTransaction = previousTransactions[Utils.BytesToString(transactionInput.ReferencedTransactionOutputId)];
                 transactionCopy.Inputs[i].Signature = new byte[0];
                 transactionCopy.Inputs[i].PublicKey = previousTransaction.Outputs[transactionInput.ReferencedTransactionOutputIndex].PublicKeyHash;
                 transactionCopy.Id = transactionCopy.Hash();
@@ -139,7 +139,7 @@ namespace bitcoin_from_scratch
                 var rawPublicKey = new PublicKey(new Point(x, y), Curves.secp256k1);
 
                 if (transactionInput.Signature.Length == 0 || 
-                    !Ecdsa.verify(Convert.ToBase64String(transactionCopy.Id), Signature.fromDer(transactionInput.Signature), rawPublicKey))
+                    !Ecdsa.verify(Utils.BytesToString(transactionCopy.Id), Signature.fromDer(transactionInput.Signature), rawPublicKey))
                 {
                     return false;
                 }

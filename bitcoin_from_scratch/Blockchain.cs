@@ -8,15 +8,17 @@ namespace bitcoin_from_scratch
     public class Blockchain
     {
         public const int coinbaseReward = 10;
-        public string DbFilePath { get; set; }
+        public string BlockchainDbFilePath { get; set; }
+        public string UtxoSetDbFilePath { get; set; }
         public string TipHashString { get; set; }
 
-        public Blockchain(string dbFilePath)
+        public Blockchain(string blockchainDbFilePath, string utxoSetDbFilePath)
         {
-            DbFilePath = dbFilePath;
+            BlockchainDbFilePath = blockchainDbFilePath;
+            UtxoSetDbFilePath = utxoSetDbFilePath;
         }
 
-        public Blockchain(string dbFilePath, string tipHashString) : this(dbFilePath)
+        public Blockchain(string blockchainDbFilePath, string utxoSetDbFilePath, string tipHashString) : this(blockchainDbFilePath, utxoSetDbFilePath)
         {
             TipHashString = tipHashString;
         }
@@ -29,7 +31,7 @@ namespace bitcoin_from_scratch
 
             if (genesisBlock.Hash != null)
             {
-                using (var db = new DB(new Options(), DbFilePath))
+                using (var db = new DB(new Options(), BlockchainDbFilePath))
                 {
                     var hashString = Utils.BytesToString(genesisBlock.Hash);
 
@@ -63,7 +65,7 @@ namespace bitcoin_from_scratch
 
             if (block.Hash != null)
             {
-                using (var db = new DB(new Options(), DbFilePath))
+                using (var db = new DB(new Options(), BlockchainDbFilePath))
                 {
                     var hashString = Utils.BytesToString(block.Hash);
                     db.Put(hashString, JsonConvert.SerializeObject(block));
@@ -135,10 +137,54 @@ namespace bitcoin_from_scratch
             return unspentTransactionOutputs.ToArray();
         }
 
+        public Dictionary<byte[], List<TransactionOutput>> FindUtxo()
+        { 
+            var utxo = new Dictionary<byte[], List<TransactionOutput>>();
+            var spentTransactions = new Dictionary<string, List<int>>();
+            var blockchainIterator = new BlockchainIterator(this);
+
+            while (!string.IsNullOrEmpty(blockchainIterator.CurrentHash))
+            {
+                var block = blockchainIterator.Next();
+                foreach (var transaction in block.Transactions)
+                {
+                    for (var i = 0; i < transaction.Outputs.Length; i++)
+                    {
+                        if (IsTransactionOutputSpent(transaction.Id, spentTransactions, i))
+                        {
+                            continue;
+                        }
+
+                        if (!utxo.ContainsKey(transaction.Id))
+                        {
+                            utxo.Add(transaction.Id, new List<TransactionOutput>());
+                        }
+
+                        utxo[transaction.Id].Append(transaction.Outputs[i]);
+                    }
+
+                    if (!transaction.IsCoinbase())
+                    {
+                        foreach (var transactionInputs in transaction.Inputs)
+                        {
+                            var stringId = Utils.BytesToString(transactionInputs.ReferencedTransactionOutputId);
+                            if (!spentTransactions.ContainsKey(stringId))
+                            {
+                                spentTransactions[stringId].Append(transactionInputs.ReferencedTransactionOutputIndex);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return utxo;
+        }
+
+        //TODO: Find out why so many transactions are considered unspent
         public Transaction[] FindUnspentTransactions(Wallet wallet)
         {
             var unspentTransactions = new List<Transaction>();
-            var spentTransactions = new Dictionary<byte[], List<int>>();
+            var spentTransactions = new Dictionary<string, List<int>>();
 
             var blockchainIterator = new BlockchainIterator(this);
 
@@ -172,11 +218,13 @@ namespace bitcoin_from_scratch
                                     // If a transaction output id appears here, it is spent
                                     var referencedTransactionOutputId = transactionInput.ReferencedTransactionOutputId;
 
-                                    if (!spentTransactions.ContainsKey(referencedTransactionOutputId))
+                                    var stringId = Utils.BytesToString(referencedTransactionOutputId);
+
+                                    if (!spentTransactions.ContainsKey(stringId))
                                     {
-                                        spentTransactions.Add(referencedTransactionOutputId, new List<int>());
+                                        spentTransactions.Add(stringId, new List<int>());
                                     }
-                                    spentTransactions[referencedTransactionOutputId].Add(transactionInput.ReferencedTransactionOutputIndex);
+                                    spentTransactions[stringId].Add(transactionInput.ReferencedTransactionOutputIndex);
                                 }
                             }
                         }
@@ -217,7 +265,7 @@ namespace bitcoin_from_scratch
                 {
                     throw new Exception("Previous transaction not found");
                 }
-                previousTransactions[Convert.ToBase64String(previousTransaction.Id)] = previousTransaction;
+                previousTransactions[Utils.BytesToString(previousTransaction.Id)] = previousTransaction;
             }
 
             transaction.Sign(privateKey, previousTransactions);
@@ -230,17 +278,18 @@ namespace bitcoin_from_scratch
             foreach (var input in transaction.Inputs)
             {
                 var previousTransaction = FindTransaction(input.ReferencedTransactionOutputId);
-                previousTransactions[Convert.ToBase64String(previousTransaction.Id)] = previousTransaction;
+                previousTransactions[Utils.BytesToString(previousTransaction.Id)] = previousTransaction;
             }
 
             return transaction.Verify(previousTransactions);
         }
 
-        private bool IsTransactionOutputSpent(byte[] transactionId, Dictionary<byte[], List<int>> spentTransactions, int outputIndexInTransaction)
+        private bool IsTransactionOutputSpent(byte[] transactionId, Dictionary<string, List<int>> spentTransactions, int outputIndexInTransaction)
         {
-            if (spentTransactions.ContainsKey(transactionId))
+            var transactionIdString = Utils.BytesToString(transactionId);
+            if (spentTransactions.ContainsKey(transactionIdString))
             {
-                return spentTransactions[transactionId].Contains(outputIndexInTransaction);
+                return spentTransactions[transactionIdString].Contains(outputIndexInTransaction);
             }
 
             return false;
@@ -253,7 +302,7 @@ namespace bitcoin_from_scratch
             return genesisBlock;
         }
 
-        private Transaction CreateCoinbaseTransaction(string data, string toAddress, byte[] toPublicKeyHash)
+        public Transaction CreateCoinbaseTransaction(string data, string toAddress, byte[] toPublicKeyHash)
         { 
             if (string.IsNullOrEmpty(data))
             {
