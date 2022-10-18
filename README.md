@@ -1,7 +1,7 @@
 # Bitcoin From Scratch
 My attempt at a simplified C# implementation of the Bitcoin protocol.
 - No p2p network, and not completely true to the original implementation.
-- Definitley not bug free or production ready.
+- Definitely not bug free or production ready.
 
 ## Building the Project
 Build the source code. From the directory containing the .csproj
