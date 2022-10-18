@@ -21,8 +21,8 @@ Saved to file: /wallets/1PUPzb4QnMPib93V9YHfQtEmu586nLcUGq.dat
 Check it out on https://www.blockchain.com/explorer
 
 ## Create a Blockchain
-Run the command create-blockchain <address>
-The address parameter is the bitcoin address which recieves the genesis block mining reward
+Run the command create-blockchain {address}
+- The address parameter is the bitcoin address which recieves the genesis block mining reward
 ```
 $ ./bitcoin_from_scratch.exe create-blockchain 1PUPzb4QnMPib93V9YHfQtEmu586nLcUGq
 Blockchain does not exist
@@ -31,15 +31,16 @@ Mining genesis block...
 Blockchain created!
 ```
 ## Get Balance
-Run the command get-balance <address>
+Run the command get-balance {address}
 ```
 $ ./bitcoin_from_scratch.exe get-balance 1PUPzb4QnMPib93V9YHfQtEmu586nLcUGq
 Balance: 10
 ```
 
 ## Send Bitcoin
-Run the command send <from address> <to address> <amount> 
-Include -r flag in the command to give the from address a mining reward!
+Run the command send {from address} {to address} {amount}
+- Include -r flag in the command to give the from address a mining reward!
+
 ```
 $ ./bitcoin_from_scratch.exe send 1PUPzb4QnMPib93V9YHfQtEmu586nLcUGq 19zJdGoTN6iJsywZXABcWdfbfrCCSJuVa7 3
 2e08cfb994320000fcff47b13661af693a7b0bc83089a65765646428d9112b0c254177
