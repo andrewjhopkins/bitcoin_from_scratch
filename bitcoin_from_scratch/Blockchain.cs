@@ -81,11 +81,11 @@ namespace bitcoin_from_scratch
             return block;
         }
 
-        public Tuple<int, Dictionary<byte[], int[]>> FindSpendableOutputs(Wallet address, int amount)
+        public Tuple<int, Dictionary<string, List<int>>> FindSpendableOutputs(Wallet address, int amount)
         {
             var publicKeyHash = Utils.HashPublicKey(address.PublicKey);
 
-            var unspentOutputs = new Dictionary<byte[], int[]>();
+            var unspentOutputs = new Dictionary<string, List<int>>();
             var unspentTransactions = FindUnspentTransactions(address);
             var accumulatedValue = 0;
 
@@ -98,10 +98,13 @@ namespace bitcoin_from_scratch
                     {
                         accumulatedValue += transactionOutput.Value;
 
-                        if (!unspentOutputs.ContainsKey(transaction.Id))
+                        var transactionIdString = Utils.BytesToString(transaction.Id);
+                        if (!unspentOutputs.ContainsKey(transactionIdString))
                         {
-                            unspentOutputs.Add(transaction.Id, new int[] { i });
+                            unspentOutputs.Add(transactionIdString, new List<int>());
                         }
+
+                        unspentOutputs[transactionIdString].Add(i);
 
                         if (accumulatedValue >= amount)
                         { 

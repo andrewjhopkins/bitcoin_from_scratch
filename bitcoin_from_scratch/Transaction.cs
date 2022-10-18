@@ -37,7 +37,7 @@ namespace bitcoin_from_scratch
             {
                 foreach (var index in keyValuePair.Value)
                 {
-                    var transactionInput = new TransactionInput(keyValuePair.Key, index, new byte[0], from.PublicKey);
+                    var transactionInput = new TransactionInput(Utils.StringToBytes(keyValuePair.Key), index, new byte[0], from.PublicKey);
                     inputs.Add(transactionInput);
                 }
             }
