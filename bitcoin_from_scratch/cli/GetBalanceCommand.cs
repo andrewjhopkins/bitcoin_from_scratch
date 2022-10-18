@@ -2,11 +2,6 @@
 using CliFx.Attributes;
 using CliFx.Infrastructure;
 using LevelDB;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace bitcoin_from_scratch.cli
 {
@@ -31,11 +26,11 @@ namespace bitcoin_from_scratch.cli
                 {
                     var walletPath = $"./wallets/{Address}.dat";
 
-                    var blockChain = new Blockchain(Constants.BlockChainDbFile, Constants.UtxoSetDbFile, chainTipHash);
+                    var blockChain = new Blockchain(Constants.BlockChainDbFile, chainTipHash);
                     var wallet = new Wallet();
 
                     wallet.LoadWalletFromFile(walletPath);
-                       
+
                     var unspentTransactionOutputs = blockChain.FindUnspentTransactionOutputs(wallet);
 
                     var balance = unspentTransactionOutputs.Sum(x => x.Value);

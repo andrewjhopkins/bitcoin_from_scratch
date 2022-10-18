@@ -25,7 +25,7 @@ namespace bitcoin_from_scratch.cli
                 }
                 else
                 {
-                    var blockchain = new Blockchain(Constants.BlockChainDbFile, Constants.UtxoSetDbFile, chainTipHash);
+                    var blockchain = new Blockchain(Constants.BlockChainDbFile, chainTipHash);
                     var blockchainIterator = new BlockchainIterator(blockchain);
 
                     while (!string.IsNullOrEmpty(blockchainIterator.CurrentHash))

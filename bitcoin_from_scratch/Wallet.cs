@@ -47,7 +47,7 @@ namespace bitcoin_from_scratch
         {
             if (string.IsNullOrEmpty(path) || !File.Exists(path))
             {
-                throw new Exception("File does not exist or can not be found.");
+                throw new Exception($"Wallet file {path} does not exist or can not be found.");
             }
 
             var walletToLoad = (Wallet)Utils.DeserializeObjectFromFile(path);

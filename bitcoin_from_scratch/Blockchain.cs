@@ -9,16 +9,14 @@ namespace bitcoin_from_scratch
     {
         public const int coinbaseReward = 10;
         public string BlockchainDbFilePath { get; set; }
-        public string UtxoSetDbFilePath { get; set; }
         public string TipHashString { get; set; }
 
-        public Blockchain(string blockchainDbFilePath, string utxoSetDbFilePath)
+        public Blockchain(string blockchainDbFilePath)
         {
             BlockchainDbFilePath = blockchainDbFilePath;
-            UtxoSetDbFilePath = utxoSetDbFilePath;
         }
 
-        public Blockchain(string blockchainDbFilePath, string utxoSetDbFilePath, string tipHashString) : this(blockchainDbFilePath, utxoSetDbFilePath)
+        public Blockchain(string blockchainDbFilePath, string tipHashString) : this(blockchainDbFilePath)
         {
             TipHashString = tipHashString;
         }
@@ -135,49 +133,6 @@ namespace bitcoin_from_scratch
             }
 
             return unspentTransactionOutputs.ToArray();
-        }
-
-        public Dictionary<byte[], List<TransactionOutput>> FindUtxo()
-        { 
-            var utxo = new Dictionary<byte[], List<TransactionOutput>>();
-            var spentTransactions = new Dictionary<string, List<int>>();
-            var blockchainIterator = new BlockchainIterator(this);
-
-            while (!string.IsNullOrEmpty(blockchainIterator.CurrentHash))
-            {
-                var block = blockchainIterator.Next();
-                foreach (var transaction in block.Transactions)
-                {
-                    for (var i = 0; i < transaction.Outputs.Length; i++)
-                    {
-                        if (IsTransactionOutputSpent(transaction.Id, spentTransactions, i))
-                        {
-                            continue;
-                        }
-
-                        if (!utxo.ContainsKey(transaction.Id))
-                        {
-                            utxo.Add(transaction.Id, new List<TransactionOutput>());
-                        }
-
-                        utxo[transaction.Id].Add(transaction.Outputs[i]);
-                    }
-
-                    if (!transaction.IsCoinbase())
-                    {
-                        foreach (var transactionInputs in transaction.Inputs)
-                        {
-                            var stringId = Utils.BytesToString(transactionInputs.ReferencedTransactionOutputId);
-                            if (!spentTransactions.ContainsKey(stringId))
-                            {
-                                spentTransactions[stringId].Add(transactionInputs.ReferencedTransactionOutputIndex);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return utxo;
         }
 
         public Transaction[] FindUnspentTransactions(Wallet wallet)

@@ -9,6 +9,5 @@ namespace bitcoin_from_scratch
     public static class Constants
     {
         public static string BlockChainDbFile = "./blockchainDb";
-        public static string UtxoSetDbFile = "./utxoSetDb";
     }
 }

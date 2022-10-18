@@ -32,8 +32,7 @@ namespace bitcoin_from_scratch.cli
                 }
                 else
                 {
-                    var blockchain = new Blockchain(Constants.BlockChainDbFile, Constants.UtxoSetDbFile, chainTipHash);
-                    var utxoSet = new UtxoSet(blockchain);
+                    var blockchain = new Blockchain(Constants.BlockChainDbFile, chainTipHash);
 
                     var fromWallet = new Wallet();
                     fromWallet.LoadWalletFromFile($"./wallets/{SenderAddress}.dat");
@@ -52,8 +51,6 @@ namespace bitcoin_from_scratch.cli
                     }
 
                     var newBlock = blockchain.CreateBlock(transactions.ToArray());
-
-                    utxoSet.Update(newBlock);
 
                     console.Output.WriteLine($"{Amount} bitcoin sent from address: {SenderAddress} to address: {RecieverAddress}");
                 }
